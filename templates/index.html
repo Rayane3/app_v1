@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Reservations installations sportives IMT Atlantique</title>
+{% endblock %}
+
+{% block body %}
+<header>
+    <h1>Réservation des installation sportives</h1>
+</header>
+<div class="hero">
+    <div class="call-to-action">
+        <h2>Bienvenue dans votre nouveau site de réservations a l'IMT Atlantique</h2>
+        <!-- Updated button to trigger modal -->
+        <button class="btn-sign-in" data-bs-toggle="modal" data-bs-target="#loginModal">Connexion</button>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loginModalLabel">Login</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Login form inside modal -->
+        <form action="{{ url_for('login') }}" method="post">
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur:</label>
+                <input type="text" id="usernameModal" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Mot de passe:</label>
+                <input type="password" id="passwordModal" name="password" required>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="submitLoginForm(event)">Login</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/submitLogin.js') }}"></script>
+        
+    
+{% endblock %}
+
+
+
+
