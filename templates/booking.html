@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Booking - Reservations installations sportives IMT Atlantique</title>
+{% endblock %}
+
+{% block body %}
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Reservations IMT</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-link" href="#reserve-section">Gérer mes réservations</a>
+                <a class="nav-link" href="#reservations-list">Consulter les réservations</a>
+                <a class="nav-link ms-auto" href="{{ url_for('logout') }}">Log Out</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+
+<!-- Building Plan -->
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 d-flex">
+            <div class="card w-100 text-center align-items-center d-flex justify-content-center">
+                <div class="card-body">
+                    <div class="h3">Grand Gymnase</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 d-flex">
+            <div class="card w-100 text-center align-items-center d-flex justify-content-center">
+                <div class="card-body">
+                    <div class="h3">Petit Gymnase</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reservation Form -->
+<div class="container mt-5" id="reserve-section">
+    <h2 class="mb-4">Réserver</h2>
+    <form action="{{ url_for('create_reservation') }}" method="post">
+        <div class="mb-3">
+            <label for="bookedPlace" class="form-label">Choisir l'endroit</label>
+            <select class="form-select" id="bookedPlace" name="booked_place" required>
+                <option value="Grand Gymnase en entier">Grand Gymnase en entier</option>
+                <option value="Grand Gymnase : section 1">Grand Gymnase : section 1</option>
+                <option value="Grand Gymnase : section 2">Grand Gymnase : section 2</option>
+                <option value="Grand Gymnase : section 3">Grand Gymnase : section 3</option>
+                <option value="Petit Gymnase en entier">Petit Gymnase en entier</option>
+                <option value="Petit Gymnase : section 1">Petit Gymnase : section 1</option>
+                <option value="Petit Gymnase : section 2">Petit Gymnase : section 2</option>
+                <option value="Mur d'escalade">Mur d'escalade</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="reservationDate" class="form-label">Date de Reservation</label>
+            <input type="date" class="form-control" id="reservationDate" name="date_of_reservation" required>
+        </div>
+        <div class="mb-3">
+            <label for="startTime" class="form-label">Heure de début</label>
+            <input type="time" class="form-control" id="startTime" name="time_of_reservation" required>
+        </div>
+        <div class="mb-3">
+            <label for="endTime" class="form-label">Heure de fin</label>
+            <input type="time" class="form-control" id="endTime" name="end_time_of_reservation" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Confirmer Réservation</button>
+    </form>
+</div>
+
+<!-- Reservations List -->
+<div class="container mt-5" id="reservations-list">
+    <h2 class="mb-4">Vos Reservations</h2>
+    <table class="table" id="reservationsTable">
+        <thead>
+            <tr>
+                <!-- ... table headers ... -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for reservation in reservations %}
+            <tr data-id="{{ reservation.id }}">
+                <td class="booked-place">{{ reservation.booked_place }}</td>
+                <td class="date-of-reservation">{{ reservation.date_of_reservation }}</td>
+                <td class="start-time">{{ reservation.time_of_reservation.strftime('%H:%M') }}</td>
+                <td class="end-time">{{ reservation.end_time_of_reservation.strftime('%H:%M') }}</td>
+                <td>
+                    <button type="button" onclick="updateReservation(this.closest('tr'))" class="btn btn-secondary">Update</button>
+                    <button type="button" onclick="deleteReservation(this.closest('tr').getAttribute('data-id'))" class="btn btn-danger">Delete</button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">Aucune réservations trouvée.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Update Reservation Modal -->
+<div class="modal fade" id="updateReservationModal" tabindex="-1" aria-labelledby="updateReservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="updateReservationModalLabel">Modifier réservation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Update form -->
+          <form id="updateReservationForm">
+            <input type="hidden" id="updateReservationId">
+            <div class="mb-3">
+              <label for="updateBookedPlace" class="form-label">Choisir l'endoit</label>
+              <select class="form-select" id="updateBookedPlace" required>
+                <option value="Grand Gymnase en entier">Grand Gymnase en entier</option>
+                <option value="Grand Gymnase : section 1">Grand Gymnase : section 1</option>
+                <option value="Grand Gymnase : section 2">Grand Gymnase : section 2</option>
+                <option value="Grand Gymnase : section 3">Grand Gymnase : section 3</option>
+                <option value="Petit Gymnase en entier">Petit Gymnase en entier</option>
+                <option value="Petit Gymnase : section 1">Petit Gymnase : section 1</option>
+                <option value="Petit Gymnase : section 2">Petit Gymnase : section 2</option>
+                <option value="Mur d'escalade">Mur d'escalade</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="updateReservationDate" class="form-label">Date de Reservation</label>
+              <input type="date" class="form-control" id="updateReservationDate" required>
+            </div>
+            <div class="mb-3">
+              <label for="updateStartTime" class="form-label">Heure de début</label>
+              <input type="time" class="form-control" id="updateStartTime" required>
+            </div>
+            <div class="mb-3">
+              <label for="updateEndTime" class="form-label">Heure de fin</label>
+              <input type="time" class="form-control" id="updateEndTime" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+          <button type="button" class="btn btn-primary" onclick="submitUpdateReservation()">Enregistrer les modifications</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="{{ url_for('static', filename='js/reservations.js') }}"></script>
+
+{% endblock %}
+
+
+
