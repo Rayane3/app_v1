@@ -15,8 +15,10 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-                <a class="nav-link active" aria-current="page" href="#">Gerer mes réservations</a>
-                <a class="nav-link" href="#">Consulter les réservations</a>
+                <a class="nav-link" href="#reserve-section">Réserver</a>
+                <a class="nav-link" href="#timetable-section">Consulter les réservations</a>
+                <a class="nav-link" href="#reservations-list">Mes réservations</a>
+                <a class="nav-link ms-auto" href="{{ url_for('logout') }}">Log Out</a>
             </div>
         </div>
     </div>
@@ -44,20 +46,20 @@
 </div>
 
 <!-- Reservation Form -->
-<div class="container mt-5">
+<div class="container mt-5" id="reserve-section">
     <h2 class="mb-4">Réserver</h2>
     <form action="{{ url_for('create_reservation') }}" method="post">
         <div class="mb-3">
             <label for="bookedPlace" class="form-label">Choisir l'endroit</label>
             <select class="form-select" id="bookedPlace" name="booked_place" required>
-                <option value="Grand Gymnase">Grand Gymnase en entier</option>
-                <option value="Grand Gymnase">Grand Gymnase : section 1</option>
-                <option value="Grand Gymnase">Grand Gymnase : section 2</option>
-                <option value="Grand Gymnase">Grand Gymnase : section 3</option>
-                <option value="Grand Gymnase">Petit Gymnase en entier</option>
-                <option value="Grand Gymnase">Petit Gymnase : section 1</option>
-                <option value="Petit Gymnase">Petit Gymnase : section 2</option>
-                <option value="Grand Gymnase">Mur d'escalade</option>
+                <option value="Grand Gymnase en entier">Grand Gymnase en entier</option>
+                <option value="Grand Gymnase : section 1">Grand Gymnase : section 1</option>
+                <option value="Grand Gymnase : section 2">Grand Gymnase : section 2</option>
+                <option value="Grand Gymnase : section 3">Grand Gymnase : section 3</option>
+                <option value="Petit Gymnase en entier">Petit Gymnase en entier</option>
+                <option value="Petit Gymnase : section 1">Petit Gymnase : section 1</option>
+                <option value="Petit Gymnase : section 2">Petit Gymnase : section 2</option>
+                <option value="Mur d'escalade">Mur d'escalade</option>
             </select>
         </div>
         <div class="mb-3">
@@ -66,18 +68,55 @@
         </div>
         <div class="mb-3">
             <label for="startTime" class="form-label">Heure de début</label>
-            <input type="time" class="form-control" id="startTime" name="time_of_reservation" required>
+            <select class="form-select" id="startTime" name="time_of_reservation" required>
+                {% for hour in range(24) %}
+                    {% for minute in [0, 30] %}
+                        <option value="{{ '%02d' % hour }}:{{ '%02d' % minute }}">{{ '%02d' % hour }}:{{ '%02d' % minute }}</option>
+                    {% endfor %}
+                {% endfor %}
+            </select>
         </div>
+
         <div class="mb-3">
             <label for="endTime" class="form-label">Heure de fin</label>
-            <input type="time" class="form-control" id="endTime" name="end_time_of_reservation" required>
+            <select class="form-select" id="endTime" name="end_time_of_reservation" required>
+                {% for hour in range(24) %}
+                    {% for minute in [0, 30] %}
+                        <option value="{{ '%02d' % hour }}:{{ '%02d' % minute }}">{{ '%02d' % hour }}:{{ '%02d' % minute }}</option>
+                    {% endfor %}
+                {% endfor %}
+            </select>
         </div>
         <button type="submit" class="btn btn-primary">Confirmer Réservation</button>
     </form>
 </div>
 
+<!-- Place Selection for Timetable -->
+<div class="container mt-5" id="timetable-section">
+    <h2 class="mb-4">Consulter les horaires</h2>
+    <form id="placeSelectionForm">
+        <div class="mb-3">
+            <label for="timetablePlace" class="form-label">Choisir l'endroit pour consulter les horaires</label>
+            <select class="form-select" id="timetablePlace" name="timetable_place" onchange="fetchTimetable()">
+                <option value="">Sélectionner un endroit</option>
+                <option value="Grand Gymnase en entier">Grand Gymnase en entier</option>
+                <option value="Grand Gymnase : section 1">Grand Gymnase : section 1</option>
+                <option value="Grand Gymnase : section 2">Grand Gymnase : section 2</option>
+                <option value="Grand Gymnase : section 3">Grand Gymnase : section 3</option>
+                <option value="Petit Gymnase en entier">Petit Gymnase en entier</option>
+                <option value="Petit Gymnase : section 1">Petit Gymnase : section 1</option>
+                <option value="Petit Gymnase : section 2">Petit Gymnase : section 2</option>
+                <option value="Mur d'escalade">Mur d'escalade</option>
+            </select>
+        </div>
+    </form>
+    <div id="timetable"></div>
+</div>
+
+
+
 <!-- Reservations List -->
-<div class="container mt-5">
+<div class="container mt-5" id="reservations-list">
     <h2 class="mb-4">Vos Reservations</h2>
     <table class="table" id="reservationsTable">
         <thead>
@@ -121,14 +160,14 @@
             <div class="mb-3">
               <label for="updateBookedPlace" class="form-label">Choisir l'endoit</label>
               <select class="form-select" id="updateBookedPlace" required>
-                <option value="Grand Gymnase">Grand Gymnase en entier</option>
-                <option value="Grand Gymnase">Grand Gymnase : section 1</option>
-                <option value="Grand Gymnase">Grand Gymnase : section 2</option>
-                <option value="Grand Gymnase">Grand Gymnase : section 3</option>
-                <option value="Grand Gymnase">Petit Gymnase en entier</option>
-                <option value="Grand Gymnase">Petit Gymnase : section 1</option>
-                <option value="Petit Gymnase">Petit Gymnase : section 2</option>
-                <option value="Grand Gymnase">Mur d'escalade</option>
+                <option value="Grand Gymnase en entier">Grand Gymnase en entier</option>
+                <option value="Grand Gymnase : section 1">Grand Gymnase : section 1</option>
+                <option value="Grand Gymnase : section 2">Grand Gymnase : section 2</option>
+                <option value="Grand Gymnase : section 3">Grand Gymnase : section 3</option>
+                <option value="Petit Gymnase en entier">Petit Gymnase en entier</option>
+                <option value="Petit Gymnase : section 1">Petit Gymnase : section 1</option>
+                <option value="Petit Gymnase : section 2">Petit Gymnase : section 2</option>
+                <option value="Mur d'escalade">Mur d'escalade</option>
               </select>
             </div>
             <div class="mb-3">
@@ -154,6 +193,8 @@
   </div>
 
 <script src="{{ url_for('static', filename='js/reservations.js') }}"></script>
+<script src="{{ url_for('static', filename='js/fetchTimetable.js') }}"></script>
+
 
 {% endblock %}
 

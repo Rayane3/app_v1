@@ -6,7 +6,9 @@ body, html {
     height: 100%;
     font-family: Arial, sans-serif;
     background-color: #f8f9fa;
+    overflow-y: visible;
 }
+
 
 /* Ensures main content grows to push the footer down but not out of view */
 .main-content {
@@ -24,14 +26,20 @@ header {
 }
 
 /* Footer styling */
-footer {
+.footer {
     background-color: #f8f9fa;
     text-align: center;
     padding: 10px 0;
     width: 100%;
-    position: absolute;
     bottom: 0;
+    height: 60px;
 }
+
+.content-wrap {
+    flex: 1;
+    padding-bottom: 60px; /* Should be the same as the footer height */
+}
+
 
 /* Hero section styling */
 .hero {
@@ -60,6 +68,12 @@ footer {
     border-radius: 5px;
     transition: background-color 0.3s;
 }
+.btn-primary {
+    color :#000000;
+    display : flex;
+    font-size : 1em;
+}
+
 
 .btn-sign-in:hover {
     background-color: #e6b800;
@@ -155,6 +169,19 @@ footer {
 }
 
 
+#timetable {
+    margin-top: 20px;
+}
+.timetable-entry {
+    background-color: #f0f0f0;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+
+
+
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     footer {
@@ -165,3 +192,6 @@ footer {
         flex: 0 1 calc(100% - 40px); /* Allows boxes to take full width minus margin on small screens */
     }
 }
+
+
+

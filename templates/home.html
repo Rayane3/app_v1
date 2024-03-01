@@ -13,6 +13,7 @@
         <h2>Bienvenue dans votre nouveau site de réservations a l'IMT Atlantique</h2>
         <!-- Updated button to trigger modal -->
         <button class="btn-sign-in" data-bs-toggle="modal" data-bs-target="#loginModal">Connexion</button>
+        <a href="{{ url_for('register') }}" class="btn btn-primary">Register</a>
     </div>
 </div>
 
@@ -25,30 +26,27 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <!-- Login form inside modal -->
-        <form action="{{ url_for('login') }}" method="post">
-            <div class="form-group">
-                <label for="username">Nom d'utilisateur:</label>
-                <input type="text" id="usernameModal" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Mot de passe:</label>
-                <input type="password" id="passwordModal" name="password" required>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="submitLoginForm(event)">Login</button>
-            </div>
-        </form>
+        <!-- Only render this part if 'form' is passed to the template -->
+        {% if login_form %}
+        <form method="POST" action="{{ url_for('login') }}">
+              {{ login_form.hidden_tag() }}
+              <div class="form-group">
+                  {{ login_form.username.label }}
+                  {{ login_form.username(class="form-control") }}
+              </div>
+              <div class="form-group">
+                  {{ login_form.password.label }}
+                  {{ login_form.password(class="form-control") }}
+              </div>
+              <div class="modal-footer">
+                  {{ login_form.submit(class="btn btn-primary") }}
+              </div>
+          </form>
+        {% endif %}
       </div>
     </div>
   </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/submitLogin.js') }}"></script>
-        
     
 {% endblock %}
-
-
-
-
