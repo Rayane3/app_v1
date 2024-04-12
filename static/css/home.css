@@ -1,0 +1,152 @@
+
+.login-box {
+    padding: 15px; /* Reduced padding */
+    border: 1px solid #ddd; /* Light grey border */
+    background-color: #ffffff; /* White background */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border-radius: 5px; /* Rounds the corners */
+    z-index: 2; /* Ensures the login box appears above the background image */
+    max-width: 340px; /* Adjust the width as needed, reduced for less white space */
+    width: 100%; /* Ensures it does not exceed the parent's width */
+    margin: 20px; /* Adds some margin around the box */
+}
+
+/* If you still find the white space too large, you can further reduce the padding and adjust max-width accordingly. */
+
+/* Additional styling for form elements inside the login box for better appearance */
+.login-box .form-group {
+    margin-bottom: 10px; /* Reduced space between form elements */
+}
+
+.login-box h2 {
+    margin-bottom: 15px; /* Reduced bottom margin of the header */
+    text-align: center;
+}
+
+.login-box .btn-primary {
+    width: 100%; /* Makes the button span the full width of the login box */
+    margin-top: 10px; /* Adds some space above the button */
+}
+
+.register-link {
+    margin-top: 10px; /* Reduced margin above the register link */
+    text-align: center;
+}
+
+/* Footer styling */
+.footer {
+    background-color: #f8f9fa;
+    text-align: center;
+    padding: 10px 0;
+    width: 100%;
+    bottom: 0;
+    height: 60px;
+}
+
+.content-wrap {
+    flex: 1;
+    padding-bottom: 60px; /* Should be the same as the footer height */
+}
+
+
+/* Hero section styling */
+.hero {
+    background-image: url('/static/images/campus-brest-600.jpeg');
+    background-size: cover;
+    background-position: center;
+    height: 80vh; /* Adjust height to leave space for footer */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.call-to-action {
+    text-align: center;
+    align-items: center;
+    justify-content: center; /* Centers horizontally */
+    color: white;
+}
+
+/* Sign in button styling */
+.btn-sign-in {
+    display: inline-block;
+    background-color: #ffcc00; /* Brighter color for visibility */
+    color: #000000;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-size: 1.2em;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+.btn-primary {
+    color :#000000;
+    display : flex;
+    font-size : 1em;
+}
+
+
+.btn-sign-in:hover {
+    background-color: #e6b800;
+}
+
+.card {
+    height: 300px; /* Set a fixed height for your cards */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-body {
+    width: 100%;
+}
+
+.h3 {
+    margin: 0;
+}
+
+
+/* Login page */
+/* Login page */
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.login-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.login-button:hover {
+    background-color: #0056b3;
+}
+
+.error {
+    color: red;
+    margin-bottom: 15px;
+}

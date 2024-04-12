@@ -1,0 +1,52 @@
+/*booking page*/
+/*booking page*/
+
+.building-plan {
+    height: 200px; /* Adjust based on your preference */
+    background-color: #ddd; /* Light grey to distinguish the plan area */
+    border: 2px solid #bbb; /* Slightly darker border for depth */
+    margin-bottom: 20px; /* Space below each plan */
+}
+
+.grand-gymnase {
+    /*background-image: url('/path/to/your/grand-gymnase-image.jpg');  Optional: if you have a plan image */
+    background-size: cover; /* Cover the div with the image */
+}
+
+.petit-gymnase {
+    /*background-image: url('/path/to/your/petit-gymnase-image.jpg');  Optional: if you have a plan image */
+    background-size: cover; /* Cover the div with the image */
+}
+
+/* Additional styling for navbar and footer for a cohesive look */
+.navbar-dark.bg-primary {
+    background-color: #007bff !important; /* Bootstrap primary color */
+}
+
+
+#timetable {
+    margin-top: 20px;
+}
+.timetable-entry {
+    background-color: #f0f0f0;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+
+
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    footer {
+        padding: 15px 0; /* Example of increasing padding on smaller screens */
+        /* Any other responsive adjustments for the footer */
+    }
+    .gym {
+        flex: 0 1 calc(100% - 40px); /* Allows boxes to take full width minus margin on small screens */
+    }
+}
+
+
+

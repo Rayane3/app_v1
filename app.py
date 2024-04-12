@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import and_, or_
 from datetime import datetime, timedelta, date
 from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -7,6 +8,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo, ValidationError
 from flask_bcrypt import Bcrypt
+
 
 app = Flask(__name__)
 
@@ -22,7 +24,7 @@ login_manager.login_view = 'home'  # Redirect users to the home page to login
 
 
 db = SQLAlchemy(app)
-
+  
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -41,14 +43,14 @@ class User(db.Model, UserMixin):
 class LoginForm(FlaskForm):
     username = StringField('Nom d\'utilisateur', validators=[DataRequired()])
     password = PasswordField('Mot de passe', validators=[DataRequired()])
-    submit = SubmitField('Login')
+    submit = SubmitField('Connexion')
 
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired(), EqualTo('confirm', message='Passwords must match')])
     confirm = PasswordField('Repeat Password', validators=[DataRequired()])
-    submit = SubmitField('Register')
+    submit = SubmitField('Inscription')
 
 
 class Reservation(db.Model):
@@ -59,6 +61,24 @@ class Reservation(db.Model):
     end_time_of_reservation = db.Column(db.Time, nullable=False)
     booked_place = db.Column(db.String(50), nullable=False)
     user = db.relationship('User', backref=db.backref('reservations', lazy=True))
+
+
+class Places:
+    def __init__(self):
+        self.places = [
+            "Grand Gymnase en entier",
+            "Grand Gymnase : section 1",
+            "Grand Gymnase : section 2",
+            "Grand Gymnase : section 3",
+            "Petit Gymnase en entier",
+            "Petit Gymnase : section 1",
+            "Petit Gymnase : section 2",
+            "Mur d'escalade"
+        ]
+
+    def get_places(self):
+        return self.places
+
 
 
 @app.route('/')
@@ -79,7 +99,7 @@ def register():
         # Check if username already exists
         user = User.query.filter_by(username=form.username.data).first()
         if user:
-            flash('Username already exists. Please choose a different one.')
+            flash('Nom d\'utilisateur existe déja. Veuillez en choisir un autre.')
             return redirect(url_for('register'))
         
         # Create new user with hashed password
@@ -88,7 +108,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        flash('Your account has been created! You are now able to log in', 'success')
+        flash('Votre compte a été crée! Vous pouvez vous connectez maintenant', 'success')
         return redirect(url_for('home'))
     return render_template('register.html', title='Register', form=form)
 
@@ -103,9 +123,9 @@ def login():
                 login_user(user)
                 return redirect(url_for('booking'))
             else:
-                flash('Invalid password provided.', 'error')
+                flash('Mot de passe incorrect.', 'error')
         else:
-            flash('Username does not exist.', 'error')
+            flash('Nom d\'utilisateur inexistant.', 'error')
     return redirect(url_for('home'))  # Redirect back to home for any form issues
 
 
@@ -113,8 +133,9 @@ def login():
 @login_required
 def booking():
     all_reservations = Reservation.query.filter_by(user_id=current_user.id).all()
-    return render_template('booking.html', reservations=all_reservations)
-
+    places = Places()  # Create an instance of the Places class
+    places_list = places.get_places()  # Retrieve the list of places
+    return render_template('booking.html', reservations=all_reservations, places_list=places_list)
 
 
 @app.route('/create_reservation', methods=['POST'])
@@ -124,12 +145,39 @@ def create_reservation():
     date_of_reservation = datetime.strptime(request.form['date_of_reservation'], '%Y-%m-%d').date()
     start_time = datetime.strptime(request.form['time_of_reservation'], '%H:%M').time()
     end_time = datetime.strptime(request.form['end_time_of_reservation'], '%H:%M').time()
+    user_id = current_user.id
 
     # Ensure end_time is within 1 hour of start_time
     max_end_time = (datetime.combine(date.min, start_time) + timedelta(hours=1)).time()
     if end_time > max_end_time:
-        flash('End time must be within 1 hour of start time.')
+        flash('la réservation peut pas durer plus qu\'une heure.')
         return redirect(url_for('booking'))
+    
+    # Check if the place is "Mur d'escalade"
+    if booked_place == "Mur d'escalade":
+        existing_reservations_count = Reservation.query.filter(
+            Reservation.date_of_reservation == date_of_reservation,
+            Reservation.booked_place == booked_place,
+            or_(and_(Reservation.time_of_reservation <= start_time, Reservation.end_time_of_reservation > start_time),
+                and_(Reservation.time_of_reservation < end_time, Reservation.end_time_of_reservation >= end_time))
+        ).count()
+
+        if existing_reservations_count >= 5:
+            flash('Mur d\'escalade est déja entierement reserve.', 'danger')
+            return redirect(url_for('booking'))
+        
+    else:
+        # For all other places, ensure no overlapping reservations
+        existing_reservation = Reservation.query.filter(
+            Reservation.date_of_reservation == date_of_reservation,
+            Reservation.booked_place == booked_place,
+            or_(and_(Reservation.time_of_reservation <= start_time, Reservation.end_time_of_reservation > start_time),
+                and_(Reservation.time_of_reservation < end_time, Reservation.end_time_of_reservation >= end_time))
+        ).first()
+
+        if existing_reservation:
+            flash('Ce créneau est déja réservé.', 'danger')
+            return redirect(url_for('booking'))
 
     new_reservation = Reservation(
         user_id=current_user.id,  # Set the user_id to the current user's ID
@@ -142,9 +190,21 @@ def create_reservation():
     db.session.add(new_reservation)
     db.session.commit()
 
-    flash('Reservation successfully created!')
+    flash('Reservation crée avec succés!')
     return redirect(url_for('reservations'))
 
+
+@app.route('/fetch_timetable')
+@login_required
+def fetch_timetable():
+    place = request.args.get('place')
+    reservations = Reservation.query.filter_by(booked_place=place).all()
+    reservations_data = [{
+        'date': reservation.date_of_reservation.strftime('%Y-%m-%d'),
+        'start_time': reservation.time_of_reservation.strftime('%H:%M'),
+        'end_time': reservation.end_time_of_reservation.strftime('%H:%M')
+    } for reservation in reservations]
+    return jsonify({'reservations': reservations_data})
 
 
 # Delete a reservation
@@ -155,8 +215,7 @@ def delete_reservation(reservation_id):
     reservation = Reservation.query.get_or_404(reservation_id)
     db.session.delete(reservation)
     db.session.commit()
-    return jsonify({'message': 'Reservation deleted successfully'})
-
+    return jsonify({'message': 'Reservation supprimé avec succes'})
 
 
 # Update a reservation
@@ -178,7 +237,7 @@ def update_reservation(reservation_id):
 
     # Update the database
     db.session.commit()
-    return jsonify({'message': 'Reservation updated successfully'})
+    return jsonify({'message': 'Reservation modifie avec succees'})
 
 
 @app.route('/reservations')
@@ -194,9 +253,12 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+
 if __name__ == "__main__":
     with app.app_context():
-    #    db.drop_all()
         db.create_all()
     app.run(debug=True)
+
+
+
 
