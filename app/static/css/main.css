@@ -169,16 +169,104 @@ header {
 }
 
 
-#timetable {
+
+
+/* Timetable container styling */
+#timetable-section {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
     margin-top: 20px;
 }
-.timetable-entry {
-    background-color: #f0f0f0;
-    padding: 10px;
-    margin-bottom: 5px;
-    border-radius: 5px;
+
+/* Form styling */
+#placeSelectionForm .form-label {
+    font-weight: bold;
 }
 
+#placeSelectionForm .form-select {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+}
+
+/* Navigation buttons styling */
+.timetable-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.timetable-navigation button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.timetable-navigation button:hover {
+    background-color: #0056b3;
+}
+
+.timetable-navigation span {
+    font-weight: bold;
+    align-self: center;
+}
+
+/* Timetable grid styling */
+.timetable-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr); /* 8 columns for time + days */
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.timetable-header {
+    background-color: #ffc107;
+    color: #343a40;
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.timetable-row {
+    display: contents;
+}
+
+.time-slot, .day-slot {
+    text-align: center;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.time-slot {
+    background-color: #e9ecef;
+    font-weight: bold;
+}
+
+.day-slot {
+    background-color: #28a745; /* Green for available */
+    color: white;
+}
+
+.day-slot.booked {
+    background-color: #dc3545; /* Red for booked */
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .timetable-grid {
+        grid-template-columns: repeat(4, 1fr); /* Adjust to 4 columns on smaller screens */
+    }
+    .timetable-header, .time-slot, .day-slot {
+        font-size: 14px; /* Smaller text on smaller screens */
+    }
+}
 
 
 
