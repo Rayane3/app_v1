@@ -69,7 +69,7 @@
         <div class="mb-3">
             <label for="startTime" class="form-label">Heure de début</label>
             <select class="form-select" id="startTime" name="time_of_reservation" required>
-                {% for hour in range(6,24) %}
+                {% for hour in range(24) %}
                     {% for minute in [0, 30] %}
                         <option value="{{ '%02d' % hour }}:{{ '%02d' % minute }}">{{ '%02d' % hour }}:{{ '%02d' % minute }}</option>
                     {% endfor %}
@@ -80,18 +80,16 @@
         <div class="mb-3">
             <label for="endTime" class="form-label">Heure de fin</label>
             <select class="form-select" id="endTime" name="end_time_of_reservation" required>
-                {% for hour in range(6,24) %}
+                {% for hour in range(24) %}
                     {% for minute in [0, 30] %}
                         <option value="{{ '%02d' % hour }}:{{ '%02d' % minute }}">{{ '%02d' % hour }}:{{ '%02d' % minute }}</option>
                     {% endfor %}
                 {% endfor %}
-                <option value="00:00">00:00</option>
             </select>
         </div>
         <button type="submit" class="btn btn-primary">Confirmer Réservation</button>
     </form>
 </div>
-
 
 <!-- Place Selection for Timetable -->
 <div class="container mt-5" id="timetable-section">
@@ -112,52 +110,7 @@
             </select>
         </div>
     </form>
-    {% set today = today %}
-    {% set start_of_week = start_of_week %}
-    <div class="timetable-navigation">
-        <button id="prevWeek" class="btn btn-secondary">Semaine précédente</button>
-        <span id="currentWeek"></span>
-        <button id="nextWeek" class="btn btn-secondary">Semaine suivante</button>
-    </div>
-    <div id="timetable" class="timetable-grid">
-        <!-- Table Headers -->
-        <div class="timetable-header">Time</div>
-        <div class="timetable-header">Lundi</div>
-        <div class="timetable-header">Mardi</div>
-        <div class="timetable-header">Mercredi</div>
-        <div class="timetable-header">Jeudi</div>
-        <div class="timetable-header">Vendredi</div>
-        <div class="timetable-header">Samedi</div>
-        <div class="timetable-header">Dimanche</div>
-        
-        <!-- Time slots -->
-            {% set date = (start_of_week|timedelta(days=day)).strftime('%Y-%m-%d') %}
-            {% for hour in range(6, 24) %}
-                {% for minute in [0, 30] %}
-                    <div class="timetable-row">
-                    <div class="time-slot">{{ '%02d' % hour }}:{{ '%02d' % minute }}</div>
-                    <div class="day-slot available" data-date="{{ date }}" data-time="{{ '%02d' % hour }}:{{ '%02d' % minute }}">Free</div>
-                    <div class="day-slot available" data-date="{{ date }}" data-time="{{ '%02d' % hour }}:{{ '%02d' % minute }}">Free</div>
-                    <div class="day-slot available" data-date="{{ date }}" data-time="{{ '%02d' % hour }}:{{ '%02d' % minute }}">Free</div>
-                    <div class="day-slot available" data-date="{{ date }}" data-time="{{ '%02d' % hour }}:{{ '%02d' % minute }}">Free</div>
-                    <div class="day-slot available" data-date="{{ date }}" data-time="{{ '%02d' % hour }}:{{ '%02d' % minute }}">Free</div>
-                    <div class="day-slot available" data-date="{{ date }}" data-time="{{ '%02d' % hour }}:{{ '%02d' % minute }}">Free</div>
-                    <div class="day-slot available" data-date="{{ date }}" data-time="{{ '%02d' % hour }}:{{ '%02d' % minute }}">Free</div>
-                    </div>
-                {% endfor %}
-            {% endfor %}
-        <!-- Extra slot for 00:00 -->
-        <div class="timetable-row">
-        <div class="time-slot">00:00</div>
-        <div class="day-slot available"></div>
-        <div class="day-slot available" ></div>
-        <div class="day-slot available" ></div>
-        <div class="day-slot available" ></div>
-        <div class="day-slot available" ></div>
-        <div class="day-slot available" ></div>
-        <div class="day-slot available" ></div>
-        </div>
-    </div>
+    <div id="timetable"></div>
 </div>
 
 
@@ -243,31 +196,7 @@
 <script src="{{ url_for('static', filename='js/fetchTimetable.js') }}"></script>
 
 
-<script>
-    // JavaScript to handle fetching and rendering the timetable
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize the timetable for the current week on page load
-        fetchTimetable();
-    
-        // Event listener for previous week button
-        document.getElementById('prevWeek').addEventListener('click', function() {
-            // Logic to decrement the week
-        });
-    
-        // Event listener for next week button
-        document.getElementById('nextWeek').addEventListener('click', function() {
-            // Logic to increment the week
-        });
-    
-        // Event listener for place selection change
-        document.getElementById('timetablePlace').addEventListener('change', fetchTimetable);
-    });
-    
-    function fetchTimetable() {
-        // Logic to fetch and render the timetable
-    }
-</script>
-
 {% endblock %}
+
 
 
