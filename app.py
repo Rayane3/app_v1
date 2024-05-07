@@ -192,7 +192,7 @@ def get_reservations():
         date_of_reservation=selected_date,
         booked_place=place_str
     ).all()
-
+    
     reservations_list = [
         {
             'id': r.id,
