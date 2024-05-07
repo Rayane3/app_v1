@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo, ValidationError
-from flask_bcrypt import Bcrypt
+
 
 app = Flask(__name__)
 
@@ -173,18 +173,40 @@ def create_reservation():
     flash('Reservation successfully created!')
     return redirect(url_for('reservations'))
 
+@app.route('/api/reservations', methods=['GET'])
+def get_reservations():
+    # Retrieve the date and place from the query parameters
+    date_str = request.args.get('date')
+    place_str = request.args.get('place')
 
-@app.route('/fetch_timetable')
-@login_required
-def fetch_timetable():
-    place = request.args.get('place')
-    reservations = Reservation.query.filter_by(booked_place=place).all()
-    reservations_data = [{
-        'date': reservation.date_of_reservation.strftime('%Y-%m-%d'),
-        'start_time': reservation.time_of_reservation.strftime('%H:%M'),
-        'end_time': reservation.end_time_of_reservation.strftime('%H:%M')
-    } for reservation in reservations]
-    return jsonify({'reservations': reservations_data})
+    try:
+        selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+
+    if not place_str:
+        return jsonify({'error': 'Place must be specified.'}), 400
+
+    # Query reservations for the given date and place
+    reservations = Reservation.query.filter_by(
+        date_of_reservation=selected_date,
+        booked_place=place_str
+    ).all()
+
+    reservations_list = [
+        {
+            'id': r.id,
+            'user_id': r.user_id,
+            'date_of_reservation': r.date_of_reservation.isoformat(),
+            'time_of_reservation': r.time_of_reservation.strftime('%H:%M'),
+            'end_time_of_reservation': r.end_time_of_reservation.strftime('%H:%M'),
+            'booked_place': r.booked_place
+        }
+        for r in reservations
+    ]
+
+    return jsonify(reservations_list)
+
 
 
 
