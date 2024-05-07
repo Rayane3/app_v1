@@ -97,7 +97,7 @@
     <form id="placeSelectionForm">
         <div class="mb-3">
             <label for="timetablePlace" class="form-label">Choisir l'endroit pour consulter les horaires</label>
-            <select class="form-select" id="timetablePlace" name="timetable_place" onchange="fetchTimetable()">
+            <select class="form-select" id="timetablePlace" name="timetable_place">
                 <option value="">Sélectionner un endroit</option>
                 <option value="Grand Gymnase en entier">Grand Gymnase en entier</option>
                 <option value="Grand Gymnase : section 1">Grand Gymnase : section 1</option>
@@ -333,8 +333,10 @@ renderCalendar();
         for (let day = 1; day <= daysInMonth; day++) {
             const dayElem = document.createElement("li");
             dayElem.textContent = day;
+            const selectedPlaceElem = document.getElementById("timetablePlace");
+            const selectedPlace = selectedPlaceElem.value;
             dayElem.addEventListener("click", function () {
-                showTimetable(day, month, year);
+                showTimetable(day, month, year,selectedPlace);
             });
             datesContainer.appendChild(dayElem);
         }
@@ -360,6 +362,8 @@ function fetchTimetable() {
     const selectedPlaceElem = document.getElementById("timetablePlace");
     const selectedPlace = selectedPlaceElem.value;
 
+    console.log(`Selected place: ${selectedPlace}`);
+
     if (selectedPlace === "") {
         alert("Please select a place first.");
         return;
@@ -376,41 +380,65 @@ function fetchTimetable() {
 }
 
 async function showTimetable(day, month, year, selectedPlace) {
+    // Prepare the selected date in a consistent format (YYYY-MM-DD)
     const selectedDate = new Date(year, month, day).toISOString().slice(0, 10);
-    const selectedDateElem = document.getElementById("selected-date");
     const timetableElem = document.getElementById("timetable");
-    const popupModal = document.getElementById("popup-modal");
-    const modalOverlay = document.getElementById("modal-overlay");
-
-    selectedDateElem.textContent = `Selected Day: ${new Date(year, month, day).toDateString()} - Place: ${selectedPlace}`;
     timetableElem.innerHTML = "";
+    
+    
 
-    // Fetch reservations for the selected date and place from the back end
+    // Fetch reservations data from the backend
     const response = await fetch(`/api/reservations?date=${selectedDate}&place=${encodeURIComponent(selectedPlace)}`);
     const reservations = await response.json();
+
+    // Check if there's an error returned from the server
+    if (reservations.error) {
+        alert(`Error: ${reservations.error}`);
+        return;
+    }
+
+    // Extract time slots from reservations
     const reservedTimeSlots = reservations.map(r => ({
         start: r.time_of_reservation,
         end: r.end_time_of_reservation
     }));
 
-    for (let hour = 6; hour < 24; hour++) {
-        const row = document.createElement("tr");
-        const timeCell = document.createElement("td");
-        const startTime = `${hour.toString().padStart(2, '0')}:00`;
-        const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
-        timeCell.textContent = `${startTime} - ${endTime}`;
+    // Create a timetable with 6x3 grid of available and booked slots
+    const hoursPerRow = 3;
+    const totalRows = 6;
 
-        // Check if this timeframe overlaps with any reservations
-        if (reservedTimeSlots.some(slot => startTime >= slot.start && startTime < slot.end)) {
-            timeCell.classList.add('booked');
+    for (let row = 0; row < totalRows; row++) {
+        for (let slot = 0; slot < hoursPerRow; slot++) {
+            const hour = 6 + row * hoursPerRow + slot;
+            const startTime = `${hour.toString().padStart(2, '0')}:00`;
+            const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+
+            const timeCell = document.createElement("td");
+            timeCell.textContent = `${startTime} - ${endTime}`;
+
+            // Check if this time range overlaps with any reserved time slots
+            const isBooked = reservedTimeSlots.some(slot => startTime >= slot.start && startTime < slot.end);
+
+            // Assign "booked" or "available" class
+            timeCell.classList.add(isBooked ? 'booked' : 'available');
+
+            // Append to the timetable
+            timetableElem.appendChild(timeCell);
         }
-
-        row.appendChild(timeCell);
-        timetableElem.appendChild(row);
     }
 
-    popupModal.style.display = "block";
-    modalOverlay.style.display = "block";
+    // Show the modal
+    showModal();
+}
+
+
+
+// Open Modal Logic
+function showModal() {
+  const popupModal = document.getElementById("popup-modal");
+  const modalOverlay = document.getElementById("modal-overlay");
+  popupModal.style.display = "block";
+  modalOverlay.style.display = "block";
 }
 
 
