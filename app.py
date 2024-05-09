@@ -178,6 +178,7 @@ def get_reservations():
     # Retrieve the date and place from the query parameters
     date_str = request.args.get('date')
     place_str = request.args.get('place')
+    
 
     try:
         selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
@@ -192,7 +193,12 @@ def get_reservations():
         date_of_reservation=selected_date,
         booked_place=place_str
     ).all()
+
+    if not reservations:
+        return jsonify({'message': 'No reservations found for the specified date and place.'}), 404
+
     
+
     reservations_list = [
         {
             'id': r.id,

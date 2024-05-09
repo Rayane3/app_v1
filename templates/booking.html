@@ -333,24 +333,17 @@ renderCalendar();
         for (let day = 1; day <= daysInMonth; day++) {
             const dayElem = document.createElement("li");
             dayElem.textContent = day;
-            const selectedPlaceElem = document.getElementById("timetablePlace");
-            const selectedPlace = selectedPlaceElem.value;
             dayElem.addEventListener("click", function () {
-                showTimetable(day, month, year,selectedPlace);
+                showTimetable(day, month, year);
             });
             datesContainer.appendChild(dayElem);
         }
     }
 
 
-    // Global variables to store the currently selected day, month, and year
-let selectedDay, selectedMonth, selectedYear;
 
 function calendarDayClicked(day, month, year) {
-    // Update the global variables with the selected date
-    selectedDay = day;
-    selectedMonth = month;
-    selectedYear = year;
+    
 
     // Now you can call `fetchTimetable` to show the timetable for the chosen place
     fetchTimetable();
@@ -358,16 +351,8 @@ function calendarDayClicked(day, month, year) {
 
 // Function to trigger showing the timetable with the selected place
 function fetchTimetable() {
-    // Get the selected place value
-    const selectedPlaceElem = document.getElementById("timetablePlace");
-    const selectedPlace = selectedPlaceElem.value;
-
-    console.log(`Selected place: ${selectedPlace}`);
-
-    if (selectedPlace === "") {
-        alert("Please select a place first.");
-        return;
-    }
+    
+    
 
     // Ensure that we have valid day, month, and year values
     if (selectedDay === undefined || selectedMonth === undefined || selectedYear === undefined) {
@@ -376,59 +361,85 @@ function fetchTimetable() {
     }
 
     // Pass the selected day, month, year, and place to the `showTimetable` function
-    showTimetable(selectedDay, selectedMonth, selectedYear, selectedPlace);
+    showTimetable(selectedDay, selectedMonth, selectedYear);
 }
 
-async function showTimetable(day, month, year, selectedPlace) {
+async function showTimetable(day, month, year) {
     // Prepare the selected date in a consistent format (YYYY-MM-DD)
-    const selectedDate = new Date(year, month, day).toISOString().slice(0, 10);
+    const selectedDate = new Date(year, month, day + 1).toISOString().slice(0, 10);
     const timetableElem = document.getElementById("timetable");
+
     timetableElem.innerHTML = "";
-    
-    
+    console.log(day);
+    console.log(month);
+    console.log(year);
+    console.log(selectedDate);
 
-    // Fetch reservations data from the backend
-    const response = await fetch(`/api/reservations?date=${selectedDate}&place=${encodeURIComponent(selectedPlace)}`);
-    const reservations = await response.json();
+    // Get the selected place value
+    const selectedPlaceElem = document.getElementById("timetablePlace");
+    const selectedPlace = selectedPlaceElem.value;
 
-    // Check if there's an error returned from the server
-    if (reservations.error) {
-        alert(`Error: ${reservations.error}`);
+    if (selectedPlace === "") {
+        alert("Please select a place first.");
         return;
     }
 
-    // Extract time slots from reservations
-    const reservedTimeSlots = reservations.map(r => ({
-        start: r.time_of_reservation,
-        end: r.end_time_of_reservation
-    }));
+    try {
+        // Fetch reservations data from the backend
+        const response = await fetch(`/api/reservations?date=${selectedDate}&place=${selectedPlace}`);
+        const reservations = await response.json();
 
-    // Create a timetable with 6x3 grid of available and booked slots
-    const hoursPerRow = 3;
-    const totalRows = 6;
+        console.log(reservations);
 
-    for (let row = 0; row < totalRows; row++) {
-        for (let slot = 0; slot < hoursPerRow; slot++) {
-            const hour = 6 + row * hoursPerRow + slot;
-            const startTime = `${hour.toString().padStart(2, '0')}:00`;
-            const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
-
-            const timeCell = document.createElement("td");
-            timeCell.textContent = `${startTime} - ${endTime}`;
-
-            // Check if this time range overlaps with any reserved time slots
-            const isBooked = reservedTimeSlots.some(slot => startTime >= slot.start && startTime < slot.end);
-
-            // Assign "booked" or "available" class
-            timeCell.classList.add(isBooked ? 'booked' : 'available');
-
-            // Append to the timetable
-            timetableElem.appendChild(timeCell);
+        // Check if the server returned an error
+        if (reservations.error) {
+            alert(`Error: ${reservations.error}`);
+            return;
         }
-    }
 
-    // Show the modal
-    showModal();
+        // Ensure reservations is an array
+        const reservedTimeSlots = Array.isArray(reservations)
+            ? reservations.map(r => ({
+                start: r.time_of_reservation,
+                end: r.end_time_of_reservation
+            }))
+            : [];
+
+        // Create a timetable with a 6x3 grid of available and booked slots
+        const hoursPerRow = 3;
+        const totalRows = 6;
+
+        for (let row = 0; row < totalRows; row++) {
+            const rowElem = document.createElement("tr"); // Create a row for each set of slots
+            for (let slot = 0; slot < hoursPerRow; slot++) {
+                const hour = 6 + row * hoursPerRow + slot;
+                const startTime = `${hour.toString().padStart(2, '0')}:00`;
+                const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+
+                const timeCell = document.createElement("td");
+                timeCell.textContent = `${startTime} - ${endTime}`;
+
+                // Check if this time range overlaps with any reserved time slots
+                const isBooked = reservedTimeSlots.some(slot => startTime >= slot.start && startTime < slot.end);
+
+                // Assign "booked" or "available" class
+                timeCell.classList.add(isBooked ? 'booked' : 'available');
+
+                // Append to the row
+                rowElem.appendChild(timeCell);
+            }
+
+            // Append the row to the timetable
+            timetableElem.appendChild(rowElem);
+        }
+
+        // Show the modal
+        showModal();
+
+    } catch (error) {
+        console.error('Error fetching reservations:', error);
+        alert('An error occurred while fetching reservations. Please try again.');
+    }
 }
 
 
