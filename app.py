@@ -25,6 +25,17 @@ login_manager.login_view = 'home'  # Redirect users to the home page to login
 db = SQLAlchemy(app)
 
 
+gym_places = [
+    "Grand Gymnase en entier",
+    "Grand Gymnase : section 1",
+    "Grand Gymnase : section 2",
+    "Grand Gymnase : section 3",
+    "Petit Gymnase en entier",
+    "Petit Gymnase : section 1",
+    "Petit Gymnase : section 2",
+    "Mur d'escalade"
+]
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -114,7 +125,7 @@ def login():
 @login_required
 def booking():
     all_reservations = Reservation.query.filter_by(user_id=current_user.id).all()
-    return render_template('booking.html', reservations=all_reservations)
+    return render_template('booking.html', reservations=all_reservations, gym_places = gym_places)
 
 
 
@@ -131,7 +142,7 @@ def create_reservation():
     max_end_time = (datetime.combine(date.min, start_time) + timedelta(hours=1)).time()
     if end_time > max_end_time:
         flash('End time must be within 1 hour of start time.')
-        return redirect(url_for('booking'))
+        return redirect(url_for('booking'), gym_places=gym_places)
     
     # Check if the place is "Mur d'escalade"
     if booked_place == "Mur d'escalade":
@@ -144,7 +155,7 @@ def create_reservation():
 
         if existing_reservations_count >= 5:
             flash('Mur d\'escalade is fully booked for this time slot.', 'danger')
-            return redirect(url_for('booking'))
+            return redirect(url_for('booking'), gym_places=gym_places)
         
     else:
         # For all other places, ensure no overlapping reservations
@@ -157,7 +168,7 @@ def create_reservation():
 
         if existing_reservation:
             flash('This place is already booked for the selected time slot.', 'danger')
-            return redirect(url_for('booking'))
+            return redirect(url_for('booking'), gym_places=gym_places)
 
     new_reservation = Reservation(
         user_id=current_user.id,  # Set the user_id to the current user's ID
@@ -171,7 +182,7 @@ def create_reservation():
     db.session.commit()
 
     flash('Reservation successfully created!')
-    return redirect(url_for('reservations'))
+    return redirect(url_for('reservations'), gym_places=gym_places)
 
 @app.route('/api/reservations', methods=['GET'])
 def get_reservations():
@@ -254,7 +265,7 @@ def update_reservation(reservation_id):
 @login_required
 def reservations():
     all_reservations = Reservation.query.filter_by(user_id=current_user.id).all()
-    return render_template('booking.html', reservations=all_reservations)
+    return render_template('booking.html', reservations=all_reservations, gym_places=gym_places)
 
 
 @app.route('/logout')

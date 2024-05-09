@@ -29,69 +29,15 @@
 <div class="container mt-5">
     <div class="row">
         <!-- Grand Gymnase en entier -->
-        <div class="col-md-6 d-flex">
-            <div class="card w-100 text-center align-items-center d-flex justify-content-center" data-value="Grand Gymnase en entier">
-                <div class="card-body">
-                    <div class="h3">Grand Gymnase en entier</div>
+        {% for place in gym_places %}
+            <div class="col-md-6 d-flex">
+                <div class="card w-100 text-center align-items-center d-flex justify-content-center" data-value="{{ place }}">
+                    <div class="card-body">
+                        <div class="h3">{{ place }}</div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <!-- Grand Gymnase : section 1 -->
-        <div class="col-md-6 d-flex">
-            <div class="card w-100 text-center align-items-center d-flex justify-content-center" data-value="Grand Gymnase : section 1">
-                <div class="card-body">
-                    <div class="h3">Grand Gymnase : section 1</div>
-                </div>
-            </div>
-        </div>
-        <!-- Grand Gymnase : section 2 -->
-        <div class="col-md-6 d-flex">
-            <div class="card w-100 text-center align-items-center d-flex justify-content-center" data-value="Grand Gymnase : section 2">
-                <div class="card-body">
-                    <div class="h3">Grand Gymnase : section 2</div>
-                </div>
-            </div>
-        </div>
-        <!-- Grand Gymnase : section 3 -->
-        <div class="col-md-6 d-flex">
-            <div class="card w-100 text-center align-items-center d-flex justify-content-center" data-value="Grand Gymnase : section 3">
-                <div class="card-body">
-                    <div class="h3">Grand Gymnase : section 3</div>
-                </div>
-            </div>
-        </div>
-        <!-- Petit Gymnase en entier -->
-        <div class="col-md-6 d-flex">
-            <div class="card w-100 text-center align-items-center d-flex justify-content-center" data-value="Petit Gymnase en entier">
-                <div class="card-body">
-                    <div class="h3">Petit Gymnase en entier</div>
-                </div>
-            </div>
-        </div>
-        <!-- Petit Gymnase : section 1 -->
-        <div class="col-md-6 d-flex">
-            <div class="card w-100 text-center align-items-center d-flex justify-content-center" data-value="Petit Gymnase : section 1">
-                <div class="card-body">
-                    <div class="h3">Petit Gymnase : section 1</div>
-                </div>
-            </div>
-        </div>
-        <!-- Petit Gymnase : section 2 -->
-        <div class="col-md-6 d-flex">
-            <div class="card w-100 text-center align-items-center d-flex justify-content-center" data-value="Petit Gymnase : section 2">
-                <div class="card-body">
-                    <div class="h3">Petit Gymnase : section 2</div>
-                </div>
-            </div>
-        </div>
-        <!-- Mur d'escalade -->
-        <div class="col-md-6 d-flex">
-            <div class="card w-100 text-center align-items-center d-flex justify-content-center" data-value="Mur d'escalade">
-                <div class="card-body">
-                    <div class="h3">Mur d'escalade</div>
-                </div>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </div>
 
@@ -105,14 +51,9 @@
             <label for="timetablePlace" class="form-label">Choisir l'endroit pour consulter les horaires</label>
             <select class="form-select" id="timetablePlace" name="timetable_place">
                 <option value="">Sélectionner un endroit</option>
-                <option value="Grand Gymnase en entier">Grand Gymnase en entier</option>
-                <option value="Grand Gymnase : section 1">Grand Gymnase : section 1</option>
-                <option value="Grand Gymnase : section 2">Grand Gymnase : section 2</option>
-                <option value="Grand Gymnase : section 3">Grand Gymnase : section 3</option>
-                <option value="Petit Gymnase en entier">Petit Gymnase en entier</option>
-                <option value="Petit Gymnase : section 1">Petit Gymnase : section 1</option>
-                <option value="Petit Gymnase : section 2">Petit Gymnase : section 2</option>
-                <option value="Mur d'escalade">Mur d'escalade</option>
+                {% for place in gym_places %}
+                <option value="{{ place }}">{{ place }}</option>
+                {% endfor %}
             </select>
         </div>
     </form>
@@ -163,14 +104,9 @@
         <div class="mb-3">
             <label for="bookedPlace" class="form-label">Choisir l'endroit</label>
             <select class="form-select" id="bookedPlace" name="booked_place" required>
-                <option value="Grand Gymnase en entier">Grand Gymnase en entier</option>
-                <option value="Grand Gymnase : section 1">Grand Gymnase : section 1</option>
-                <option value="Grand Gymnase : section 2">Grand Gymnase : section 2</option>
-                <option value="Grand Gymnase : section 3">Grand Gymnase : section 3</option>
-                <option value="Petit Gymnase en entier">Petit Gymnase en entier</option>
-                <option value="Petit Gymnase : section 1">Petit Gymnase : section 1</option>
-                <option value="Petit Gymnase : section 2">Petit Gymnase : section 2</option>
-                <option value="Mur d'escalade">Mur d'escalade</option>
+                {% for place in gym_places %}
+                <option value="{{ place }}">{{ place }}</option>
+            {% endfor %}
             </select>
         </div>
         <div class="mb-3">
@@ -248,14 +184,9 @@
             <div class="mb-3">
               <label for="updateBookedPlace" class="form-label">Choisir l'endoit</label>
               <select class="form-select" id="updateBookedPlace" required>
-                <option value="Grand Gymnase en entier">Grand Gymnase en entier</option>
-                <option value="Grand Gymnase : section 1">Grand Gymnase : section 1</option>
-                <option value="Grand Gymnase : section 2">Grand Gymnase : section 2</option>
-                <option value="Grand Gymnase : section 3">Grand Gymnase : section 3</option>
-                <option value="Petit Gymnase en entier">Petit Gymnase en entier</option>
-                <option value="Petit Gymnase : section 1">Petit Gymnase : section 1</option>
-                <option value="Petit Gymnase : section 2">Petit Gymnase : section 2</option>
-                <option value="Mur d'escalade">Mur d'escalade</option>
+                {% for place in gym_places %}
+                <option value="{{ place }}">{{ place }}</option>
+            {% endfor %}
               </select>
             </div>
             <div class="mb-3">
