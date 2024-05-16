@@ -1,0 +1,112 @@
+.calendar {
+    margin: auto;
+    width: 98%;
+    max-width: 380px;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.calendar header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.calendar nav {
+    display: flex;
+    align-items: center;
+}
+
+.calendar ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    text-align: center;
+}
+
+.calendar ul li {
+    width: calc(100% / 7);
+    margin-top: 25px;
+    position: relative;
+    z-index: 2;
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+.calendar ul li:hover {
+    background-color: #f0f0f0; /* Light gray background on hover */
+}
+
+#prev,
+#next {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+#prev::before,
+#next::before {
+    content: "";
+    width: 50%;
+    height: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-style: solid;
+    border-width: 0.25em 0.25em 0 0;
+    border-color: #ccc;
+}
+
+#next::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+#prev::before {
+    transform: translate(-50%, -50%) rotate(-135deg);
+}
+
+#prev:hover::before,
+#next:hover::before {
+    border-color: #000;
+}
+
+.dates li.today {
+    color: #fff;
+    background-color: #000; /* Highlight today's date without the circle */
+}
+
+.dates li.inactive {
+    color: #ccc;
+}
+
+#timetable-container {
+    margin-top: 20px; /* Space between calendar and timetable */
+}
+
+#timetable {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 10px;
+}
+
+#timetable td {
+    text-align: center;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+
+#timetable td.booked {
+    background-color: #ff6961;
+    color: #fff;
+}
+
+#timetable td.available {
+    background-color: #77dd77;
+}

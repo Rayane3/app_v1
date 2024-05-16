@@ -142,7 +142,7 @@ def create_reservation():
     max_end_time = (datetime.combine(date.min, start_time) + timedelta(hours=1)).time()
     if end_time > max_end_time:
         flash('End time must be within 1 hour of start time.')
-        return redirect(url_for('booking'), gym_places=gym_places)
+        return redirect(url_for('booking'))
     
     # Check if the place is "Mur d'escalade"
     if booked_place == "Mur d'escalade":
@@ -155,7 +155,7 @@ def create_reservation():
 
         if existing_reservations_count >= 5:
             flash('Mur d\'escalade is fully booked for this time slot.', 'danger')
-            return redirect(url_for('booking'), gym_places=gym_places)
+            return redirect(url_for('booking'))
         
     else:
         # For all other places, ensure no overlapping reservations
@@ -168,7 +168,7 @@ def create_reservation():
 
         if existing_reservation:
             flash('This place is already booked for the selected time slot.', 'danger')
-            return redirect(url_for('booking'), gym_places=gym_places)
+            return redirect(url_for('booking'))
 
     new_reservation = Reservation(
         user_id=current_user.id,  # Set the user_id to the current user's ID
@@ -182,7 +182,7 @@ def create_reservation():
     db.session.commit()
 
     flash('Reservation successfully created!')
-    return redirect(url_for('reservations'), gym_places=gym_places)
+    return redirect(url_for('reservations'))
 
 @app.route('/api/reservations', methods=['GET'])
 def get_reservations():
