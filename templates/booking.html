@@ -4,12 +4,14 @@
 <title>Booking - Reservations installations sportives IMT Atlantique</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/booking.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_booking.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/plan_booking.css') }}">
 {% endblock %}
 
 {% block body %}
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">Reservations IMT</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,17 +31,29 @@
 
 <!-- Building Plan -->
 <div class="container mt-5">
-    <div class="row">
-        <!-- Grand Gymnase en entier -->
-        {% for place in gym_places %}
-            <div class="col-md-6 d-flex">
+    <!-- First Column (Top Half) -->
+    <div class="column">
+        <div class="top-half">
+            {% for place in gym_places[:gym_places|length//2] %}
                 <div class="card w-100 text-center align-items-center d-flex justify-content-center" data-value="{{ place }}">
                     <div class="card-body">
                         <div class="h3">{{ place }}</div>
                     </div>
                 </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Second Column (Bottom Half) -->
+    <div class="column">
+        <div class="bottom-half">
+            {% for place in gym_places[gym_places|length//2:] %}
+                <div class="card w-100 text-center align-items-center d-flex justify-content-center" data-value="{{ place }}">
+                    <div class="card-body">
+                        <div class="h3">{{ place }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
 

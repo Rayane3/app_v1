@@ -1,0 +1,21 @@
+.navbar {
+    padding: 0.5rem 1rem; /* Adjust padding as needed */
+    background-color: #007bff; /* More lively blue color */
+}
+
+.navbar-brand {
+    margin-right: auto; /* Pushes the brand to the left */
+    font-size: 1.5rem; /* Adjust font size as needed */
+    font-weight: bold; /* Thicker text */
+}
+
+.navbar-nav {
+    flex: 1; /* Makes the navbar-nav take full width */
+    justify-content: flex-end; /* Aligns nav links to the right */
+}
+
+.nav-link {
+    margin-left: 1rem; /* Adds space between links */
+    font-size: 1rem; /* Adjust font size as needed */
+    font-weight: bold; /* Thicker text */
+}
