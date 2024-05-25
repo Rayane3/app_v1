@@ -142,6 +142,11 @@
 
 <!-- Reservations List -->
 <div class="container mt-5" id="reservations-list">
+    {% if current_user.is_authenticated and current_user.is_admin %}
+    <div class="admin-link">
+        <a href="{{ url_for('admin_reservations') }}" class="btn btn-primary">Admin Reservations</a>
+    </div>
+    {% endif %}
     <h2 class="mb-4">Vos Reservations</h2>
     <table class="table" id="reservationsTable">
         <thead>

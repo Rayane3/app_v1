@@ -6,7 +6,10 @@ from flask_login import UserMixin, LoginManager, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, EqualTo, ValidationError
+from wtforms.validators import DataRequired, EqualTo
+
+from flask_admin import Admin, AdminIndexView
+from flask_admin.contrib.sqla import ModelView
 
 
 app = Flask(__name__)
@@ -36,10 +39,31 @@ gym_places = [
     "Mur d'escalade"
 ]
 
+
+# Custom admin index view to restrict access to admins only
+class MyAdminIndexView(AdminIndexView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.is_admin
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('home'))
+
+# Create customized model view class
+class MyModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.is_admin
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('home'))
+
+
+
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
+    is_admin = db.Column(db.Boolean, default=False)
 
     # reservations = db.relationship('Reservation', backref='user', lazy=True)  # This line is optional since it's defined in Reservation
 
@@ -73,6 +97,12 @@ class Reservation(db.Model):
     user = db.relationship('User', backref=db.backref('reservations', lazy=True))
 
 
+# Initialize Flask-Admin
+admin = Admin(app, index_view=MyAdminIndexView())
+admin.add_view(MyModelView(User, db.session))
+admin.add_view(MyModelView(Reservation, db.session))
+
+
 @app.route('/')
 def home():
     form = LoginForm()
@@ -97,6 +127,11 @@ def register():
         # Create new user with hashed password
         hashed_password = generate_password_hash(form.password.data)
         new_user = User(username=form.username.data, password_hash=hashed_password)
+
+        # For demonstration, set the first user as admin
+        if User.query.count() == 0:
+            new_user.is_admin = True
+
         db.session.add(new_user)
         db.session.commit()
 
@@ -124,8 +159,11 @@ def login():
 @app.route('/booking')
 @login_required
 def booking():
-    all_reservations = Reservation.query.filter_by(user_id=current_user.id).all()
-    return render_template('booking.html', reservations=all_reservations, gym_places = gym_places)
+    if current_user.is_admin:
+        all_reservations = Reservation.query.all()
+    else:
+        all_reservations = Reservation.query.filter_by(user_id=current_user.id).all()
+    return render_template('booking.html', reservations=all_reservations, gym_places=gym_places)
 
 
 
@@ -208,8 +246,6 @@ def get_reservations():
     if not reservations:
         return jsonify({'message': 'No reservations found for the specified date and place.'}), 404
 
-    
-
     reservations_list = [
         {
             'id': r.id,
@@ -231,11 +267,12 @@ def get_reservations():
 @app.route('/delete_reservation/<int:reservation_id>', methods=['POST'])
 @login_required
 def delete_reservation(reservation_id):
-    print('Delete route called for ID:', reservation_id)
     reservation = Reservation.query.get_or_404(reservation_id)
-    db.session.delete(reservation)
-    db.session.commit()
-    return jsonify({'message': 'Reservation deleted successfully'})
+    if current_user.is_admin or reservation.user_id == current_user.id:
+        db.session.delete(reservation)
+        db.session.commit()
+        return jsonify({'message': 'Reservation deleted successfully'})
+    return jsonify({'message': 'Unauthorized'}), 403
 
 
 
@@ -247,25 +284,44 @@ def update_reservation(reservation_id):
     if not request.json:
         return jsonify({'message': 'Invalid JSON data'}), 400
 
-    data = request.json
     reservation = Reservation.query.get_or_404(reservation_id)
 
-    # Update reservation with the new details
-    reservation.booked_place = data.get('booked_place')
-    reservation.date_of_reservation = datetime.strptime(data.get('date_of_reservation'), '%Y-%m-%d').date()
-    reservation.time_of_reservation = datetime.strptime(data.get('time_of_reservation'), '%H:%M').time()
-    reservation.end_time_of_reservation = datetime.strptime(data.get('end_time_of_reservation'), '%H:%M').time()
+    if current_user.is_admin or reservation.user_id == current_user.id:
+        data = request.json
+        reservation.booked_place = data.get('booked_place')
+        reservation.date_of_reservation = datetime.strptime(data.get('date_of_reservation'), '%Y-%m-%d').date()
+        reservation.time_of_reservation = datetime.strptime(data.get('time_of_reservation'), '%H:%M').time()
+        reservation.end_time_of_reservation = datetime.strptime(data.get('end_time_of_reservation'), '%H:%M').time()
+        db.session.commit()
+        return jsonify({'message': 'Reservation updated successfully'})
+    return jsonify({'message': 'Unauthorized'}), 403
 
-    # Update the database
-    db.session.commit()
-    return jsonify({'message': 'Reservation updated successfully'})
 
 
 @app.route('/reservations')
 @login_required
 def reservations():
-    all_reservations = Reservation.query.filter_by(user_id=current_user.id).all()
+    if current_user.is_admin:
+        all_reservations = Reservation.query.all()
+    else:
+        all_reservations = Reservation.query.filter_by(user_id=current_user.id).all()
     return render_template('booking.html', reservations=all_reservations, gym_places=gym_places)
+
+
+@app.route('/admin_reservations', methods=['GET', 'POST'])
+@login_required
+def admin_reservations():
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    
+    selected_place = request.args.get('booked_place')
+    reservations = []
+    
+    if selected_place:
+        reservations = Reservation.query.filter_by(booked_place=selected_place).all()
+
+    return render_template('admin_reservations.html', reservations=reservations, gym_places=gym_places, selected_place=selected_place)
+
 
 
 @app.route('/logout')
@@ -274,11 +330,10 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
-
 
 
