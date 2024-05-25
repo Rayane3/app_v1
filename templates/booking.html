@@ -81,7 +81,7 @@
     <h2>Calendar</h2>
         <div class="calendar">
           <header>
-            <h3></h3>
+            <h3 id="currentMonthTitle"></h3>
             <nav>
               <button id="prev"></button>
               <button id="next"></button>
@@ -131,10 +131,8 @@
         <div class="mb-3">
             <label for="startTime" class="form-label">Heure de début</label>
             <select class="form-select" id="startTime" name="time_of_reservation" required>
-                {% for hour in range(24) %}
-                    {% for minute in [0, 30] %}
-                        <option value="{{ '%02d' % hour }}:{{ '%02d' % minute }}">{{ '%02d' % hour }}:{{ '%02d' % minute }}</option>
-                    {% endfor %}
+                {% for hour in range(6, 24) %}
+                    <option value="{{ '%02d' % hour }}:{{ '%02d' % 00 }}">{{ '%02d' % hour }}:{{ '%02d' % 00 }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -142,10 +140,8 @@
         <div class="mb-3">
             <label for="endTime" class="form-label">Heure de fin</label>
             <select class="form-select" id="endTime" name="end_time_of_reservation" required>
-                {% for hour in range(24) %}
-                    {% for minute in [0, 30] %}
-                        <option value="{{ '%02d' % hour }}:{{ '%02d' % minute }}">{{ '%02d' % hour }}:{{ '%02d' % minute }}</option>
-                    {% endfor %}
+                {% for hour in range(7, 25) %}
+                    <option value="{{ '%02d' % hour }}:{{ '%02d' % 00 }}">{{ '%02d' % hour }}:{{ '%02d' % 00 }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -519,6 +515,22 @@ function showModal() {
 });
 
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Array of month names
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        
+        // Get the current date
+        const now = new Date();
+        
+        // Get the current month name
+        const currentMonth = monthNames[now.getMonth()];
+        
+        // Update the content of the h3 element
+        document.getElementById("currentMonthTitle").textContent = "Month: " + currentMonth;
+    });
+    </script>
 
 
 {% endblock %}

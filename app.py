@@ -181,30 +181,48 @@ def create_reservation():
     if end_time > max_end_time:
         flash('End time must be within 1 hour of start time.')
         return redirect(url_for('booking'))
-    
-    # Check if the place is "Mur d'escalade"
-    if booked_place == "Mur d'escalade":
-        existing_reservations_count = Reservation.query.filter(
-            Reservation.date_of_reservation == date_of_reservation,
-            Reservation.booked_place == booked_place,
-            or_(and_(Reservation.start_time <= start_time, Reservation.end_time > start_time),
-                and_(Reservation.start_time < end_time, Reservation.end_time >= end_time))
-        ).count()
 
+    # Query to check overlapping reservations
+    def overlapping_reservations(place):
+        return Reservation.query.filter(
+            Reservation.date_of_reservation == date_of_reservation,
+            Reservation.booked_place == place,
+            or_(and_(Reservation.time_of_reservation <= start_time, Reservation.end_time_of_reservation > start_time),
+                and_(Reservation.time_of_reservation < end_time, Reservation.end_time_of_reservation >= end_time))
+        )
+
+    # Check specific conditions for "Mur d'escalade"
+    if booked_place == "Mur d'escalade":
+        existing_reservations_count = overlapping_reservations(booked_place).count()
         if existing_reservations_count >= 5:
             flash('Mur d\'escalade is fully booked for this time slot.', 'danger')
             return redirect(url_for('booking'))
-        
-    else:
-        # For all other places, ensure no overlapping reservations
-        existing_reservation = Reservation.query.filter(
-            Reservation.date_of_reservation == date_of_reservation,
-            Reservation.booked_place == booked_place,
-            or_(and_(Reservation.time_of_reservation <= start_time, Reservation.end_time_of_reservation > start_time),
-                and_(Reservation.time_of_reservation < end_time, Reservation.end_time_of_reservation >= end_time))
-        ).first()
 
-        if existing_reservation:
+    # Check conditions for "grand gymnase en entier" and its sections
+    elif booked_place == "Grand Gymnase en entier":
+        for section in ["Grand Gymnase : section 1", "Grand Gymnase : section 2", "Grand Gymnase : section 3"]:
+            if overlapping_reservations(section).first():
+                flash('One or more sections of grand gymnase are already booked.', 'danger')
+                return redirect(url_for('booking'))
+    elif booked_place in ["Grand Gymnase : section 1", "Grand Gymnase : section 2", "Grand Gymnase : section 3"]:
+        if overlapping_reservations("Grand Gymnase en entier").first():
+            flash('Grand gymnase en entier is already booked.', 'danger')
+            return redirect(url_for('booking'))
+
+    # Check conditions for "petit gymnase en entier" and its sections
+    elif booked_place == "Petit Gymnase en entier":
+        for section in ["Petit Gymnase : section 1", "Petit Gymnase : section 2"]:
+            if overlapping_reservations(section).first():
+                flash('One or more sections of petit gymnase are already booked.', 'danger')
+                return redirect(url_for('booking'))
+    elif booked_place in ["Petit Gymnase : section 1", "Petit Gymnase : section 2"]:
+        if overlapping_reservations("Petit Gymnase en entier").first():
+            flash('Petit gymnase en entier is already booked.', 'danger')
+            return redirect(url_for('booking'))
+
+    # For all other places, ensure no overlapping reservations
+    else:
+        if overlapping_reservations(booked_place).first():
             flash('This place is already booked for the selected time slot.', 'danger')
             return redirect(url_for('booking'))
 

@@ -1,90 +1,87 @@
-.calendar {
+/* Ensure the calendar and timetable are styled correctly */
+#calendrier {
+    max-width: 900px;
     margin: auto;
-    width: 98%;
-    max-width: 380px;
-    padding: 1rem;
-    background: #fff;
+}
+
+.calendar {
+    background: #ffffff;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
 }
 
 .calendar header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-}
-
-.calendar nav {
-    display: flex;
     align-items: center;
+    margin-bottom: 20px;
 }
 
-.calendar ul {
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
+.calendar h3 {
+    font-size: 1.5rem;
+    color: #007bff;
+}
+
+.calendar nav button {
+    background: #007bff;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.calendar nav button:hover {
+    background: #0056b3;
+}
+
+.calendar section {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+.calendar .days {
+    display: contents;
+}
+
+.calendar .days li {
+    font-weight: bold;
+    color: #333333;
     text-align: center;
 }
 
-.calendar ul li {
-    width: calc(100% / 7);
-    margin-top: 25px;
-    position: relative;
-    z-index: 2;
-    cursor: pointer; /* Change cursor to pointer on hover */
+.calendar .dates {
+    display: contents;
 }
 
-.calendar ul li:hover {
-    background-color: #f0f0f0; /* Light gray background on hover */
-}
-
-#prev,
-#next {
-    width: 20px;
-    height: 20px;
-    position: relative;
-    border: none;
-    background: transparent;
+.calendar .dates li {
+    list-style: none;
+    padding: 10px;
+    text-align: center;
     cursor: pointer;
+    transition: background 0.3s, color 0.3s;
 }
 
-#prev::before,
-#next::before {
-    content: "";
-    width: 50%;
-    height: 50%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    border-style: solid;
-    border-width: 0.25em 0.25em 0 0;
-    border-color: #ccc;
+.calendar .dates li:hover {
+    background: #e9f5ff;
 }
 
-#next::before {
-    transform: translate(-50%, -50%) rotate(45deg);
+.calendar .dates li.today {
+    background: #007bff;
+    color: white;
+    border-radius: 5px;
 }
 
-#prev::before {
-    transform: translate(-50%, -50%) rotate(-135deg);
-}
-
-#prev:hover::before,
-#next:hover::before {
-    border-color: #000;
-}
-
-.dates li.today {
-    color: #fff;
-    background-color: #000; /* Highlight today's date without the circle */
-}
-
-.dates li.inactive {
-    color: #ccc;
+.calendar .dates li.inactive {
+    color: #cccccc;
 }
 
 #timetable-container {
-    margin-top: 20px; /* Space between calendar and timetable */
+    margin-top: 20px;
+    display: none;
 }
 
 #timetable {
