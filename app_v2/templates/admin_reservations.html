@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Reservations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4">Admin Reservations</h2>
+        
+        <!-- Form to select a booked place -->
+        <form method="GET" action="{{ url_for('admin_reservations') }}">
+            <div class="form-group">
+                <label for="booked_place">Select Place</label>
+                <select class="form-control" id="booked_place" name="booked_place" required>
+                    {% for place in gym_places %}
+                        <option value="{{ place }}">{{ place }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">View Reservations</button>
+        </form>
+        
+        <!-- Reservations Table -->
+        {% if reservations %}
+        <div class="mt-5">
+            <h3>Reservations for {{ selected_place }}</h3>
+            <table class="table" id="adminReservationsTable">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Booked Place</th>
+                        <th>Date</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                    <tr data-id="{{ reservation.id }}">
+                        <td>{{ reservation.user.username }}</td>
+                        <td>{{ reservation.booked_place }}</td>
+                        <td>{{ reservation.date_of_reservation }}</td>
+                        <td>{{ reservation.time_of_reservation.strftime('%H:%M') }}</td>
+                        <td>{{ reservation.end_time_of_reservation.strftime('%H:%M') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5">No reservations found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
