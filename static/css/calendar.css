@@ -1,0 +1,109 @@
+/* Ensure the calendar and timetable are styled correctly */
+#calendrier {
+    max-width: 900px;
+    margin: auto;
+}
+
+.calendar {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.calendar header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar h3 {
+    font-size: 1.5rem;
+    color: #007bff;
+}
+
+.calendar nav button {
+    background: #007bff;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.calendar nav button:hover {
+    background: #0056b3;
+}
+
+.calendar section {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+.calendar .days {
+    display: contents;
+}
+
+.calendar .days li {
+    font-weight: bold;
+    color: #333333;
+    text-align: center;
+}
+
+.calendar .dates {
+    display: contents;
+}
+
+.calendar .dates li {
+    list-style: none;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+}
+
+.calendar .dates li:hover {
+    background: #e9f5ff;
+}
+
+.calendar .dates li.today {
+    background: #007bff;
+    color: white;
+    border-radius: 5px;
+}
+
+.calendar .dates li.inactive {
+    color: #cccccc;
+}
+
+#timetable-container {
+    margin-top: 20px;
+    display: none;
+}
+
+#timetable {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 10px;
+}
+
+#timetable td {
+    text-align: center;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+
+#timetable td.booked {
+    background-color: #ff6961;
+    color: #fff;
+}
+
+#timetable td.available {
+    background-color: #77dd77;
+}

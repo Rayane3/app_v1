@@ -6,8 +6,11 @@ from flask_login import UserMixin, LoginManager, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, EqualTo, ValidationError
-from flask_bcrypt import Bcrypt
+from wtforms.validators import DataRequired, EqualTo
+
+from flask_admin import Admin, AdminIndexView
+from flask_admin.contrib.sqla import ModelView
+
 
 app = Flask(__name__)
 
@@ -25,10 +28,42 @@ login_manager.login_view = 'home'  # Redirect users to the home page to login
 db = SQLAlchemy(app)
 
 
+gym_places = [
+    "Grand Gymnase en entier",
+    "Grand Gymnase : section 1",
+    "Grand Gymnase : section 2",
+    "Grand Gymnase : section 3",
+    "Petit Gymnase en entier",
+    "Petit Gymnase : section 1",
+    "Petit Gymnase : section 2",
+    "Mur d'escalade"
+]
+
+
+# Custom admin index view to restrict access to admins only
+class MyAdminIndexView(AdminIndexView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.is_admin
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('home'))
+
+# Create customized model view class
+class MyModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.is_admin
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('home'))
+
+
+
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
+    is_admin = db.Column(db.Boolean, default=False)
 
     # reservations = db.relationship('Reservation', backref='user', lazy=True)  # This line is optional since it's defined in Reservation
 
@@ -62,6 +97,12 @@ class Reservation(db.Model):
     user = db.relationship('User', backref=db.backref('reservations', lazy=True))
 
 
+# Initialize Flask-Admin
+admin = Admin(app, index_view=MyAdminIndexView())
+admin.add_view(MyModelView(User, db.session))
+admin.add_view(MyModelView(Reservation, db.session))
+
+
 @app.route('/')
 def home():
     form = LoginForm()
@@ -86,6 +127,11 @@ def register():
         # Create new user with hashed password
         hashed_password = generate_password_hash(form.password.data)
         new_user = User(username=form.username.data, password_hash=hashed_password)
+
+        # For demonstration, set the first user as admin
+        if User.query.count() == 0:
+            new_user.is_admin = True
+
         db.session.add(new_user)
         db.session.commit()
 
@@ -113,8 +159,11 @@ def login():
 @app.route('/booking')
 @login_required
 def booking():
-    all_reservations = Reservation.query.filter_by(user_id=current_user.id).all()
-    return render_template('booking.html', reservations=all_reservations)
+    if current_user.is_admin:
+        all_reservations = Reservation.query.all()
+    else:
+        all_reservations = Reservation.query.filter_by(user_id=current_user.id).all()
+    return render_template('booking.html', reservations=all_reservations, gym_places=gym_places)
 
 
 
@@ -132,30 +181,48 @@ def create_reservation():
     if end_time > max_end_time:
         flash('End time must be within 1 hour of start time.')
         return redirect(url_for('booking'))
-    
-    # Check if the place is "Mur d'escalade"
-    if booked_place == "Mur d'escalade":
-        existing_reservations_count = Reservation.query.filter(
-            Reservation.date_of_reservation == date_of_reservation,
-            Reservation.booked_place == booked_place,
-            or_(and_(Reservation.start_time <= start_time, Reservation.end_time > start_time),
-                and_(Reservation.start_time < end_time, Reservation.end_time >= end_time))
-        ).count()
 
+    # Query to check overlapping reservations
+    def overlapping_reservations(place):
+        return Reservation.query.filter(
+            Reservation.date_of_reservation == date_of_reservation,
+            Reservation.booked_place == place,
+            or_(and_(Reservation.time_of_reservation <= start_time, Reservation.end_time_of_reservation > start_time),
+                and_(Reservation.time_of_reservation < end_time, Reservation.end_time_of_reservation >= end_time))
+        )
+
+    # Check specific conditions for "Mur d'escalade"
+    if booked_place == "Mur d'escalade":
+        existing_reservations_count = overlapping_reservations(booked_place).count()
         if existing_reservations_count >= 5:
             flash('Mur d\'escalade is fully booked for this time slot.', 'danger')
             return redirect(url_for('booking'))
-        
-    else:
-        # For all other places, ensure no overlapping reservations
-        existing_reservation = Reservation.query.filter(
-            Reservation.date_of_reservation == date_of_reservation,
-            Reservation.booked_place == booked_place,
-            or_(and_(Reservation.time_of_reservation <= start_time, Reservation.end_time_of_reservation > start_time),
-                and_(Reservation.time_of_reservation < end_time, Reservation.end_time_of_reservation >= end_time))
-        ).first()
 
-        if existing_reservation:
+    # Check conditions for "grand gymnase en entier" and its sections
+    elif booked_place == "Grand Gymnase en entier":
+        for section in ["Grand Gymnase : section 1", "Grand Gymnase : section 2", "Grand Gymnase : section 3"]:
+            if overlapping_reservations(section).first():
+                flash('One or more sections of grand gymnase are already booked.', 'danger')
+                return redirect(url_for('booking'))
+    elif booked_place in ["Grand Gymnase : section 1", "Grand Gymnase : section 2", "Grand Gymnase : section 3"]:
+        if overlapping_reservations("Grand Gymnase en entier").first():
+            flash('Grand gymnase en entier is already booked.', 'danger')
+            return redirect(url_for('booking'))
+
+    # Check conditions for "petit gymnase en entier" and its sections
+    elif booked_place == "Petit Gymnase en entier":
+        for section in ["Petit Gymnase : section 1", "Petit Gymnase : section 2"]:
+            if overlapping_reservations(section).first():
+                flash('One or more sections of petit gymnase are already booked.', 'danger')
+                return redirect(url_for('booking'))
+    elif booked_place in ["Petit Gymnase : section 1", "Petit Gymnase : section 2"]:
+        if overlapping_reservations("Petit Gymnase en entier").first():
+            flash('Petit gymnase en entier is already booked.', 'danger')
+            return redirect(url_for('booking'))
+
+    # For all other places, ensure no overlapping reservations
+    else:
+        if overlapping_reservations(booked_place).first():
             flash('This place is already booked for the selected time slot.', 'danger')
             return redirect(url_for('booking'))
 
@@ -173,18 +240,44 @@ def create_reservation():
     flash('Reservation successfully created!')
     return redirect(url_for('reservations'))
 
+@app.route('/api/reservations', methods=['GET'])
+def get_reservations():
+    # Retrieve the date and place from the query parameters
+    date_str = request.args.get('date')
+    place_str = request.args.get('place')
+    
 
-@app.route('/fetch_timetable')
-@login_required
-def fetch_timetable():
-    place = request.args.get('place')
-    reservations = Reservation.query.filter_by(booked_place=place).all()
-    reservations_data = [{
-        'date': reservation.date_of_reservation.strftime('%Y-%m-%d'),
-        'start_time': reservation.time_of_reservation.strftime('%H:%M'),
-        'end_time': reservation.end_time_of_reservation.strftime('%H:%M')
-    } for reservation in reservations]
-    return jsonify({'reservations': reservations_data})
+    try:
+        selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+
+    if not place_str:
+        return jsonify({'error': 'Place must be specified.'}), 400
+
+    # Query reservations for the given date and place
+    reservations = Reservation.query.filter_by(
+        date_of_reservation=selected_date,
+        booked_place=place_str
+    ).all()
+
+    if not reservations:
+        return jsonify({'message': 'No reservations found for the specified date and place.'}), 404
+
+    reservations_list = [
+        {
+            'id': r.id,
+            'user_id': r.user_id,
+            'date_of_reservation': r.date_of_reservation.isoformat(),
+            'time_of_reservation': r.time_of_reservation.strftime('%H:%M'),
+            'end_time_of_reservation': r.end_time_of_reservation.strftime('%H:%M'),
+            'booked_place': r.booked_place
+        }
+        for r in reservations
+    ]
+
+    return jsonify(reservations_list)
+
 
 
 
@@ -192,11 +285,12 @@ def fetch_timetable():
 @app.route('/delete_reservation/<int:reservation_id>', methods=['POST'])
 @login_required
 def delete_reservation(reservation_id):
-    print('Delete route called for ID:', reservation_id)
     reservation = Reservation.query.get_or_404(reservation_id)
-    db.session.delete(reservation)
-    db.session.commit()
-    return jsonify({'message': 'Reservation deleted successfully'})
+    if current_user.is_admin or reservation.user_id == current_user.id:
+        db.session.delete(reservation)
+        db.session.commit()
+        return jsonify({'message': 'Reservation deleted successfully'})
+    return jsonify({'message': 'Unauthorized'}), 403
 
 
 
@@ -208,25 +302,44 @@ def update_reservation(reservation_id):
     if not request.json:
         return jsonify({'message': 'Invalid JSON data'}), 400
 
-    data = request.json
     reservation = Reservation.query.get_or_404(reservation_id)
 
-    # Update reservation with the new details
-    reservation.booked_place = data.get('booked_place')
-    reservation.date_of_reservation = datetime.strptime(data.get('date_of_reservation'), '%Y-%m-%d').date()
-    reservation.time_of_reservation = datetime.strptime(data.get('time_of_reservation'), '%H:%M').time()
-    reservation.end_time_of_reservation = datetime.strptime(data.get('end_time_of_reservation'), '%H:%M').time()
+    if current_user.is_admin or reservation.user_id == current_user.id:
+        data = request.json
+        reservation.booked_place = data.get('booked_place')
+        reservation.date_of_reservation = datetime.strptime(data.get('date_of_reservation'), '%Y-%m-%d').date()
+        reservation.time_of_reservation = datetime.strptime(data.get('time_of_reservation'), '%H:%M').time()
+        reservation.end_time_of_reservation = datetime.strptime(data.get('end_time_of_reservation'), '%H:%M').time()
+        db.session.commit()
+        return jsonify({'message': 'Reservation updated successfully'})
+    return jsonify({'message': 'Unauthorized'}), 403
 
-    # Update the database
-    db.session.commit()
-    return jsonify({'message': 'Reservation updated successfully'})
 
 
 @app.route('/reservations')
 @login_required
 def reservations():
-    all_reservations = Reservation.query.filter_by(user_id=current_user.id).all()
-    return render_template('booking.html', reservations=all_reservations)
+    if current_user.is_admin:
+        all_reservations = Reservation.query.all()
+    else:
+        all_reservations = Reservation.query.filter_by(user_id=current_user.id).all()
+    return render_template('booking.html', reservations=all_reservations, gym_places=gym_places)
+
+
+@app.route('/admin_reservations', methods=['GET', 'POST'])
+@login_required
+def admin_reservations():
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    
+    selected_place = request.args.get('booked_place')
+    reservations = []
+    
+    if selected_place:
+        reservations = Reservation.query.filter_by(booked_place=selected_place).all()
+
+    return render_template('admin_reservations.html', reservations=reservations, gym_places=gym_places, selected_place=selected_place)
+
 
 
 @app.route('/logout')
@@ -235,11 +348,10 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
-
 
 
